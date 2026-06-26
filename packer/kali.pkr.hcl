@@ -36,7 +36,7 @@ source "qemu" "qcow2" {
 
   accelerator    = "kvm"
   headless       = true
-  http_directory = "${path.module}/http"
+  http_directory = "${path.root}/http"
 
   disk_interface = "virtio"
   net_device     = "virtio-net"
@@ -79,7 +79,7 @@ source "virtualbox-iso" "ova" {
   output_directory = "output/ova"
 
   headless       = true
-  http_directory = "${path.module}/http"
+  http_directory = "${path.root}/http"
 
   # VirtualBox è lento,arriviamo al GRUB menu verso i 10s
   boot_wait = "10s"
