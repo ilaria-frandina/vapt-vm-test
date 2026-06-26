@@ -49,10 +49,10 @@ jobs:
           ansible-galaxy collection install -r requirements.yml
 
       - name: Inizializza plugin Packer
-        run: packer init packer/kali.pkr.hcl
+        run: packer init packer/
 
       - name: Build QCOW2
-        run: packer build -only='qcow2.qemu.qcow2' packer/kali.pkr.hcl
+        run: packer build -only='qcow2.qemu.qcow2' packer/
         env:
           PKR_VAR_vm_password: ${{ secrets.VM_PASSWORD }}
           PKR_VAR_vm_version: ${{ github.run_number }}
@@ -90,10 +90,10 @@ jobs:
           ansible-galaxy collection install -r requirements.yml
 
       - name: Inizializza plugin Packer
-        run: packer init packer/kali.pkr.hcl
+        run: packer init packer/
 
       - name: Build OVA
-        run: packer build -only='ova.virtualbox-iso.ova' packer/kali.pkr.hcl
+        run: packer build -only='ova.virtualbox-iso.ova' packer/
         env:
           PKR_VAR_vm_password: ${{ secrets.VM_PASSWORD }}
           PKR_VAR_vm_version: ${{ github.run_number }}
