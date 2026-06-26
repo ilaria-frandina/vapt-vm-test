@@ -1,0 +1,59 @@
+---
+- name: Greenbone Community Edition (OpenVAS)
+  hosts: "{{ target }}"
+  become: true
+
+  vars:
+    gce_dir: "{{ greenbone_dir | default('/opt/greenbone') }}"
+    gce_url: "{{ greenbone_compose_url | default('https://greenbone.github.io/docs/latest/_static/docker-compose-22-4.yml') }}"
+
+  tasks:
+    - name: Crea la directory per Greenbone CE
+      ansible.builtin.file:
+        path: "{{ gce_dir }}"
+        state: directory
+        owner: root
+        group: docker
+        mode: "0775"
+
+    - name: Scarica il docker-compose ufficiale di Greenbone CE
+      ansible.builtin.get_url:
+        url: "{{ gce_url }}"
+        dest: "{{ gce_dir }}/docker-compose.yml"
+        mode: "0644"
+        timeout: 60
+
+    - name: Scarica le immagini Docker di Greenbone CE
+      ansible.builtin.command:
+        cmd: docker compose -f {{ gce_dir }}/docker-compose.yml pull
+      changed_when: false
+
+    - name: Crea il servizio systemd per Greenbone CE
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/greenbone-ce.service
+        mode: "0644"
+        content: |
+          [Unit]
+          Description=Greenbone Community Edition (OpenVAS)
+          After=docker.service
+          Requires=docker.service
+
+          [Service]
+          Type=oneshot
+          RemainAfterExit=yes
+          WorkingDirectory={{ gce_dir }}
+          ExecStart=/usr/bin/docker compose -f {{ gce_dir }}/docker-compose.yml up -d
+          ExecStop=/usr/bin/docker compose -f {{ gce_dir }}/docker-compose.yml down
+          TimeoutStartSec=300
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Ricarica la configurazione systemd
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Abilita Greenbone CE all'avvio della VM
+      ansible.builtin.systemd:
+        name: greenbone-ce
+        enabled: true

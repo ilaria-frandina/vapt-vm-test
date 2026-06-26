@@ -1,0 +1,21 @@
+---
+- name: Tool OSINT e ricognizione passiva
+  hosts: "{{ target }}"
+  become: true
+
+  tasks:
+    - name: Installa tool OSINT da apt (Kali)
+      ansible.builtin.apt:
+        name:
+          - theharvester
+          - recon-ng
+          - dnsrecon
+          - dnsenum
+          - dnsmap
+          - fierce
+          - amass
+          - maltego
+          - subfinder
+          - spiderfoot
+        state: present
+        update_cache: true

@@ -1,0 +1,15 @@
+# Chiavi SSH — mai nella repo
+id_*
+*_rsa
+*_ed25519
+*.pem
+!*.pub
+
+# Password del vault
+.vault_pass
+
+# Output di Packer (immagini VM — file grandi, da distribuire separatamente)
+output/
+
+# Cache Packer
+packer_cache/

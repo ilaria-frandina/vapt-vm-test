@@ -1,0 +1,7 @@
+---
+# Utente principale della VM (deve corrispondere al preseed e alla variabile Packer)
+vm_user: vapt
+
+# Greenbone Community Edition
+greenbone_dir: /opt/greenbone
+greenbone_compose_url: "https://greenbone.github.io/docs/latest/_static/docker-compose-22-4.yml"

@@ -1,0 +1,25 @@
+---
+- name: Tool per web application testing
+  hosts: "{{ target }}"
+  become: true
+
+  tasks:
+    - name: Installa tool web da apt (Kali)
+      ansible.builtin.apt:
+        name:
+          - nikto
+          - sqlmap
+          - dirb
+          - dirbuster
+          - gobuster
+          - ffuf
+          - whatweb
+          - wfuzz
+          - wafw00f
+          - zaproxy
+          - burpsuite
+          - wapiti
+          - feroxbuster
+          - dirsearch
+        state: present
+        update_cache: true

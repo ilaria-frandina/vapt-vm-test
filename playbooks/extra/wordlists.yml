@@ -1,0 +1,21 @@
+---
+- name: Wordlists per brute-force e fuzzing
+  hosts: "{{ target }}"
+  become: true
+
+  tasks:
+    # Su Kali: wordlists include rockyou, seclists include SecLists completo —
+    # entrambi sono pacchetti apt ufficiali, niente clone da GitHub.
+    - name: Installa wordlists e SecLists da apt (Kali)
+      ansible.builtin.apt:
+        name:
+          - wordlists
+          - seclists
+        state: present
+        update_cache: true
+
+    - name: Estrai rockyou.txt se ancora compresso
+      ansible.builtin.command:
+        cmd: gunzip -k /usr/share/wordlists/rockyou.txt.gz
+        creates: /usr/share/wordlists/rockyou.txt
+      ignore_errors: true

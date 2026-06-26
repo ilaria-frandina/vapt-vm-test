@@ -1,0 +1,106 @@
+name: Build VA/PT VM
+
+on:
+  release:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      format:
+        description: "Formato da costruire"
+        required: true
+        default: "qcow2"
+        type: choice
+        options:
+          - qcow2
+          - ova
+          - all
+
+env:
+  PACKER_VERSION: "latest"
+
+jobs:
+  # ── QCOW2 (Linux runner con KVM) — ad ogni push su main ──────────────────
+  build-qcow2:
+    name: Build QCOW2
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'release' ||
+      (github.event_name == 'workflow_dispatch' && (inputs.format == 'qcow2' || inputs.format == 'all'))
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Abilita KVM per il runner
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Installa Packer
+        uses: hashicorp/setup-packer@main
+        with:
+          version: ${{ env.PACKER_VERSION }}
+
+      - name: Installa Ansible e collection richieste
+        run: |
+          pip3 install ansible
+          ansible-galaxy collection install -r requirements.yml
+
+      - name: Inizializza plugin Packer
+        run: packer init packer/kali.pkr.hcl
+
+      - name: Build QCOW2
+        run: packer build -only='qcow2.qemu.qcow2' packer/kali.pkr.hcl
+        env:
+          PKR_VAR_vm_password: ${{ secrets.VM_PASSWORD }}
+          PKR_VAR_vm_version: ${{ github.run_number }}
+
+      - name: Upload artefatto QCOW2
+        uses: actions/upload-artifact@v4
+        with:
+          name: vapt-vm-${{ github.run_number }}-qcow2
+          path: output/qcow2/*.qcow2
+          retention-days: 30
+
+  # ── OVA (macOS runner con VirtualBox) — solo su release o dispatch ────────
+  build-ova:
+    name: Build OVA
+    runs-on: macos-13
+    if: |
+      github.event_name == 'release' ||
+      (github.event_name == 'workflow_dispatch' && (inputs.format == 'ova' || inputs.format == 'all'))
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Installa VirtualBox
+        run: brew install --cask virtualbox
+
+      - name: Installa Packer
+        uses: hashicorp/setup-packer@main
+        with:
+          version: ${{ env.PACKER_VERSION }}
+
+      - name: Installa Ansible e collection richieste
+        run: |
+          pip3 install ansible
+          ansible-galaxy collection install -r requirements.yml
+
+      - name: Inizializza plugin Packer
+        run: packer init packer/kali.pkr.hcl
+
+      - name: Build OVA
+        run: packer build -only='ova.virtualbox-iso.ova' packer/kali.pkr.hcl
+        env:
+          PKR_VAR_vm_password: ${{ secrets.VM_PASSWORD }}
+          PKR_VAR_vm_version: ${{ github.run_number }}
+
+      - name: Upload artefatto OVA
+        uses: actions/upload-artifact@v4
+        with:
+          name: vapt-vm-${{ github.run_number }}-ova
+          path: output/ova/*.ova
+          retention-days: 30

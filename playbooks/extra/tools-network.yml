@@ -1,0 +1,54 @@
+---
+- name: Tool di rete, ricognizione e sniffing
+  hosts: "{{ target }}"
+  become: true
+
+  tasks:
+    - name: Installa tool di network scanning e analisi
+      ansible.builtin.apt:
+        name:
+          - nmap
+          - masscan
+          - netcat-traditional
+          - netcat-openbsd
+          - socat
+          - tcpdump
+          - wireshark
+          - tshark
+          - netdiscover
+          - arp-scan
+          - arping
+          - fping
+          - hping3
+          - traceroute
+          - nbtscan
+          - p0f
+          - sslscan
+          - onesixtyone
+          - snmp
+          - ettercap-text-only
+          - responder
+        state: present
+        update_cache: true
+
+    - name: Pre-configura wireshark per cattura senza root
+      ansible.builtin.debconf:
+        name: wireshark-common
+        question: wireshark-common/install-setuid
+        value: "true"
+        vtype: boolean
+      notify: riconfigura wireshark
+
+    - name: Aggiunge vapt al gruppo wireshark
+      ansible.builtin.user:
+        name: "{{ vm_user | default('vapt') }}"
+        groups: wireshark
+        append: true
+
+  handlers:
+    - name: riconfigura wireshark
+      ansible.builtin.command:
+        cmd: dpkg-reconfigure -p low wireshark-common
+      environment:
+        DEBIAN_FRONTEND: noninteractive
+      changed_when: false

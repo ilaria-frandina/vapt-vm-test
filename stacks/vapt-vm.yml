@@ -1,0 +1,16 @@
+---
+- import_playbook: ../playbooks/system.yml   # update sistema + pacchetti base
+- import_playbook: ../playbooks/desktop.yml  # XFCE + autologin
+- import_playbook: ../playbooks/docker.yml   # Docker Engine (richiesto da OpenVAS)
+- import_playbook: ../playbooks/openvas.yml  # Greenbone Community Edition (OpenVAS)
+
+# ── Tool aggiuntivi uitili in futuro ────────────────────────────
+# I playbook stanno in playbooks/extra/
+#
+# - import_playbook: ../playbooks/extra/tools-network.yml    # nmap, masscan, wireshark...
+# - import_playbook: ../playbooks/extra/tools-web.yml        # nikto, sqlmap, gobuster, zaproxy, burpsuite...
+# - import_playbook: ../playbooks/extra/tools-exploitation.yml  # metasploit, netexec, impacket...
+# - import_playbook: ../playbooks/extra/tools-password.yml   # hydra, john, hashcat...
+# - import_playbook: ../playbooks/extra/tools-osint.yml      # theharvester, recon-ng, amass...
+# - import_playbook: ../playbooks/extra/tools-go.yml         # Go 1.23 + nuclei, httpx, katana
+# - import_playbook: ../playbooks/extra/wordlists.yml        # rockyou + SecLists (~1.5 GB)

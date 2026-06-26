@@ -1,0 +1,60 @@
+---
+- name: Installazione Docker
+  hosts: "{{ target }}"
+  become: true
+
+  tasks:
+    - name: Installa dipendenze per il repo Docker
+      ansible.builtin.apt:
+        name:
+          - ca-certificates
+          - curl
+          - gnupg
+        state: present
+        update_cache: true
+
+    - name: Crea la cartella per le chiavi apt
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: "0755"
+
+    - name: Aggiunge la chiave GPG di Docker
+      ansible.builtin.get_url:
+        url: https://download.docker.com/linux/debian/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: "0644"
+
+    - name: Aggiunge il repository Docker
+      ansible.builtin.apt_repository:
+        # Kali è basata su Debian bookworm — usiamo quel repo direttamente
+        # perché ansible_distribution_release su Kali restituisce 'kali-rolling'
+        repo: >-
+          deb [arch={{ ansible_architecture | replace('x86_64','amd64') | replace('aarch64','arm64') }}
+          signed-by=/etc/apt/keyrings/docker.asc]
+          https://download.docker.com/linux/debian bookworm stable
+        state: present
+        filename: docker
+
+    - name: Installa Docker Engine
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+        update_cache: true
+
+    - name: Avvia e abilita il servizio Docker
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Aggiunge vapt al gruppo docker
+      ansible.builtin.user:
+        name: "{{ vm_user | default('vapt') }}"
+        groups: docker
+        append: true

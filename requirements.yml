@@ -1,0 +1,4 @@
+---
+# Nessuna collection esterna richiesta al momento.
+# I playbook usano solo moduli ansible.builtin e ansible.builtin.systemd.
+collections: []

@@ -1,0 +1,52 @@
+---
+- name: Tool Go (nuclei, httpx, katana) e installazione Go
+  hosts: "{{ target }}"
+  become: true
+
+  vars:
+    go_version: "1.23.5"
+    go_tarball: "go{{ go_version }}.linux-amd64.tar.gz"
+    go_url: "https://go.dev/dl/{{ go_tarball }}"
+
+  tasks:
+    # gobuster, ffuf, subfinder sono già in Kali apt (tools-web.yml / tools-osint.yml)
+    # Installiamo Go da upstream per garantire la versione minima e per
+    # permettere all'utente di compilare tool custom in futuro.
+
+    - name: Scarica Go {{ go_version }} da golang.org
+      ansible.builtin.get_url:
+        url: "{{ go_url }}"
+        dest: "/tmp/{{ go_tarball }}"
+        timeout: 120
+
+    - name: Rimuove eventuale installazione Go precedente
+      ansible.builtin.file:
+        path: /usr/local/go
+        state: absent
+
+    - name: Estrae Go in /usr/local
+      ansible.builtin.unarchive:
+        src: "/tmp/{{ go_tarball }}"
+        dest: /usr/local
+        remote_src: true
+
+    - name: Aggiunge Go al PATH di sistema
+      ansible.builtin.copy:
+        dest: /etc/profile.d/golang.sh
+        mode: "0644"
+        content: |
+          export PATH=$PATH:/usr/local/go/bin
+
+    - name: Installa nuclei, httpx, katana
+      ansible.builtin.command:
+        cmd: "/usr/local/go/bin/go install {{ item }}"
+      environment:
+        GOPATH: /usr/local
+        GOBIN: /usr/local/bin
+        HOME: /root
+        GOFLAGS: "-buildvcs=false"
+      loop:
+        - "github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest"
+        - "github.com/projectdiscovery/httpx/cmd/httpx@latest"
+        - "github.com/projectdiscovery/katana/cmd/katana@latest"
+      changed_when: false

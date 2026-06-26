@@ -1,0 +1,32 @@
+---
+- name: Desktop XFCE (Kali) per attività VA/PT
+  hosts: "{{ target }}"
+  become: true
+
+  tasks:
+    - name: Installa il desktop XFCE di Kali
+      ansible.builtin.apt:
+        name:
+          - kali-desktop-xfce
+          - lightdm
+          - lightdm-gtk-greeter
+          - firefox-esr
+        state: present
+        update_cache: true
+
+    - name: Abilita il display manager lightdm
+      ansible.builtin.service:
+        name: lightdm
+        enabled: true
+
+    - name: Configura lightdm con autologin per l'utente vapt
+      ansible.builtin.copy:
+        dest: /etc/lightdm/lightdm.conf
+        mode: "0644"
+        content: |
+          [LightDM]
+
+          [Seat:*]
+          autologin-user={{ vm_user | default('vapt') }}
+          autologin-user-timeout=0
+          user-session=xfce
