@@ -91,14 +91,34 @@ Il workflow `.github/workflows/build.yml` **non parte automaticamente su push**.
 │   └── all/vars.yml             # variabili globali
 ├── ansible.cfg
 ├── inventory.ini
-└── requirements.yml
+├── requirements.yml
+└── update.sh                    # aggiorna la VM live senza rebuild (eseguire dalla VM)
 ```
 
-## Attivare tool aggiuntivi
+## Due approcci: build completa vs aggiornamento live
 
-1. Aprire `stacks/vapt-vm.yml`
-2. Decommentare il playbook desiderato
-3. Push su `main` → poi avvia la build manualmente dalla tab Actions (o crea una release)
+### Approccio 1 — Build Packer (immagine pulita con tutto incluso)
+
+Utile quando vuoi distribuire la VM ad altri, partire da un ambiente garantito pulito, o includere tool pesanti (es. wordlists, metasploit) già nell'immagine senza doverli installare ogni volta.
+
+Decommentate i playbook che vuoi in `stacks/vapt-vm.yml`, poi crea una release su GitHub (o lancia manualmente dalla tab Actions). La pipeline ricostruisce l'immagine da zero con tutto incluso.
+
+### Approccio 2 — Aggiornamento live con `update.sh` (senza rebuild)
+
+Utile quando hai già una VM in esecuzione e vuoi aggiungere tool al volo, senza aspettare ore di build.
+
+Dalla VM:
+
+```bash
+cd ~/vapt-vm-test
+./update.sh                                         # esegue l'intero stack
+./update.sh playbooks/extra/tools-web.yml           # aggiunge solo i tool web
+./update.sh playbooks/extra/tools-exploitation.yml
+```
+
+Lo script fa `git pull` automaticamente — basta decommentare il playbook in `stacks/vapt-vm.yml` (o aggiungere righe), fare commit/push, e poi eseguire `./update.sh` dalla VM.
+
+I due approcci sono compatibili: puoi usare `./update.sh` per iterare velocemente, e quando sei soddisfatto della configurazione fare una build Packer per avere un'immagine pulita da distribuire o archiviare.
 
 Per aggiungere un tool non ancora presente, trovare il pacchetto Kali (`apt search <tool>` o [pkg.kali.org](https://pkg.kali.org)) e aggiungerlo al playbook appropriato in `playbooks/extra/`.
 
@@ -130,15 +150,17 @@ export PKR_VAR_vm_version="2.0.0"
 packer build packer/kali.pkr.hcl
 ```
 
-## Provisioning manuale su VM in esecuzione
+## Prima configurazione della VM
+
+Dopo aver importato e avviato la VM, clona il repo una volta sola:
 
 ```bash
-# Riesegui l'intero stack
-ansible-playbook stacks/vapt-vm.yml -e target=vapt-vm
-
-# Applica un singolo playbook extra (es. dopo aver attivato tools-web)
-ansible-playbook playbooks/extra/tools-web.yml -e target=vapt-vm
+git clone https://github.com/<tuo-user>/vapt-vm-test ~/vapt-vm-test
+cd ~/vapt-vm-test
+chmod +x update.sh
 ```
+
+Da quel momento usi `./update.sh` per qualsiasi aggiornamento (vedi sezione sopra).
 
 ## Greenbone / OpenVAS
 
