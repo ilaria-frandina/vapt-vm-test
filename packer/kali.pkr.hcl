@@ -41,9 +41,7 @@ source "qemu" "qcow2" {
   disk_interface = "virtio"
   net_device     = "virtio-net"
 
-  # GRUB di Kali ha countdown 5s: arriviamo al menu entro i 5s,
-  # inviamo <down> per bloccare il countdown, poi entriamo in command line
-  boot_wait = "5s"
+  boot_wait = "15s"
   boot_command = [
     "<down><wait>",
     "c<wait>",
