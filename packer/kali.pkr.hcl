@@ -76,7 +76,7 @@ source "virtualbox-iso" "ova" {
   disk_size = var.disk_size
 
   guest_os_type    = "Debian_64"
-  output_format    = "ova"
+  format           = "ova"
   output_directory = "output/ova"
 
   headless       = true

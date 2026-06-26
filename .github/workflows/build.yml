@@ -89,12 +89,22 @@ jobs:
           path: /tmp/packer.log
           retention-days: 3
 
-      - name: Upload artefatto QCOW2
+      - name: Comprimi QCOW2
+        run: zstd -T0 -15 output/qcow2/*.qcow2 --rm
+
+      - name: Upload alla Release GitHub
+        if: github.event_name == 'release'
+        run: gh release upload ${{ github.event.release.tag_name }} output/qcow2/*.qcow2.zst
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload artefatto QCOW2 (solo dispatch)
+        if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4
         with:
           name: vapt-vm-${{ github.run_number }}-qcow2
-          path: output/qcow2/*.qcow2
-          retention-days: 30
+          path: output/qcow2/*.qcow2.zst
+          retention-days: 7
 
   # ── OVA (macOS runner con VirtualBox) — solo su release o dispatch ────────
   build-ova:
@@ -130,9 +140,16 @@ jobs:
           PKR_VAR_vm_password: ${{ secrets.VM_PASSWORD }}
           PKR_VAR_vm_version: ${{ github.run_number }}
 
-      - name: Upload artefatto OVA
+      - name: Upload alla Release GitHub
+        if: github.event_name == 'release'
+        run: gh release upload ${{ github.event.release.tag_name }} output/ova/*.ova
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload artefatto OVA (solo dispatch)
+        if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4
         with:
           name: vapt-vm-${{ github.run_number }}-ova
           path: output/ova/*.ova
-          retention-days: 30
+          retention-days: 7
