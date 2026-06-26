@@ -97,7 +97,7 @@ source "virtualbox-iso" "ova" {
 
   ssh_username = var.vm_user
   ssh_password = var.vm_password
-  ssh_timeout  = "90m"
+  ssh_timeout  = "150m"
 
   shutdown_command = "echo '${var.vm_password}' | sudo -S shutdown -h now"
 

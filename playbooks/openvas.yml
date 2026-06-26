@@ -27,6 +27,8 @@
       ansible.builtin.command:
         cmd: docker compose -f {{ gce_dir }}/docker-compose.yml pull
       changed_when: false
+      async: 1800
+      poll: 30
 
     - name: Crea il servizio systemd per Greenbone CE
       ansible.builtin.copy:
