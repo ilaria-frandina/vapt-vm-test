@@ -38,6 +38,9 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
+      - name: Installa QEMU
+        run: sudo apt-get update -y && sudo apt-get install -y qemu-system-x86 qemu-utils
+
       - name: Installa Packer
         uses: hashicorp/setup-packer@main
         with:
