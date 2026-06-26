@@ -54,11 +54,40 @@ jobs:
       - name: Inizializza plugin Packer
         run: packer init packer/
 
+      - name: Installa vncdotool per screenshot debug
+        run: pip3 install vncdotool
+
       - name: Build QCOW2
-        run: packer build -only='qcow2.qemu.qcow2' packer/
+        run: |
+          mkdir -p /tmp/vnc-shots
+          PACKER_LOG=1 packer build -only='qcow2.qemu.qcow2' packer/ 2>&1 | tee /tmp/packer.log &
+          PACKER_PID=$!
+          sleep 60
+          while kill -0 $PACKER_PID 2>/dev/null; do
+            TS=$(date +%H%M%S)
+            vncdo --server=127.0.0.1:5900 screenshot /tmp/vnc-shots/${TS}.png 2>/dev/null || true
+            sleep 120
+          done
+          wait $PACKER_PID
         env:
           PKR_VAR_vm_password: ${{ secrets.VM_PASSWORD }}
           PKR_VAR_vm_version: ${{ github.run_number }}
+
+      - name: Upload screenshot VNC
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vnc-screenshots-${{ github.run_number }}
+          path: /tmp/vnc-shots/
+          retention-days: 3
+
+      - name: Upload log Packer
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: packer-log-${{ github.run_number }}
+          path: /tmp/packer.log
+          retention-days: 3
 
       - name: Upload artefatto QCOW2
         uses: actions/upload-artifact@v4

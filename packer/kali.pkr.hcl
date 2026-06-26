@@ -41,10 +41,13 @@ source "qemu" "qcow2" {
   disk_interface = "virtio"
   net_device     = "virtio-net"
 
-  boot_wait = "15s"
+  vnc_port_min = 5900
+  vnc_port_max = 5900
+
+  boot_wait = "5s"
   boot_command = [
-    "<down><wait>",
-    "c<wait>",
+    "<down><wait2>",
+    "c<wait2>",
     "linux /install.amd/vmlinuz",
     " auto=true",
     " url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg",
@@ -82,8 +85,8 @@ source "virtualbox-iso" "ova" {
   # VirtualBox è lento,arriviamo al GRUB menu verso i 10s
   boot_wait = "10s"
   boot_command = [
-    "<down><wait>",
-    "c<wait>",
+    "<down><wait2>",
+    "c<wait2>",
     "linux /install.amd/vmlinuz",
     " auto=true",
     " url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg",
