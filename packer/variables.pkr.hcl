@@ -6,13 +6,13 @@ variable "vm_version" {
 
 variable "iso_url" {
   type        = string
-  default     = "https://cdimage.kali.org/kali-2024.4/kali-linux-2024.4-installer-amd64.iso"
+  default     = "https://cdimage.kali.org/kali-2026.1/kali-linux-2026.1-installer-amd64.iso"
   description = "URL dell'ISO Kali Linux installer (aggiorna iso_checksum di conseguenza)"
 }
 
 variable "iso_checksum" {
   type        = string
-  default     = "file:https://cdimage.kali.org/kali-2024.4/SHA256SUMS"
+  default     = "file:https://cdimage.kali.org/kali-2026.1/SHA256SUMS"
   description = "Checksum verificato sul file SHA256SUMS ufficiale di Kali"
 }
 
